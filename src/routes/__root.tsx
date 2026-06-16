@@ -74,14 +74,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lumen — AI Lecture & Audio Transcriber" },
+      { title: "Lumen" },
       {
         name: "description",
         content:
           "Transcribe lectures, podcasts and meetings with AI. Translate to 14 languages, generate notes, quizzes, flashcards, and chat with your audio.",
       },
       { name: "author", content: "Lumen" },
-      { property: "og:title", content: "Lumen — AI Lecture & Audio Transcriber" },
+      { property: "og:title", content: "Lumen" },
       {
         property: "og:description",
         content:
@@ -89,6 +89,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Lumen" },
+      { name: "description", content: "AI Lecture & Audio Transcriber" },
+      { property: "og:description", content: "AI Lecture & Audio Transcriber" },
+      { name: "twitter:description", content: "AI Lecture & Audio Transcriber" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2a6131b3-acca-4a26-bd27-124847142395/id-preview-afcdba4f--de06fc0c-d094-41c0-af71-bbc268de3234.lovable.app-1781622819109.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2a6131b3-acca-4a26-bd27-124847142395/id-preview-afcdba4f--de06fc0c-d094-41c0-af71-bbc268de3234.lovable.app-1781622819109.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
