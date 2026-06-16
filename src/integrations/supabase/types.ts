@@ -14,7 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          lecture_id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          lecture_id: string
+          role: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          lecture_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lectures: {
+        Row: {
+          audio_path: string
+          audio_url: string | null
+          created_at: string
+          duration_seconds: number | null
+          error: string | null
+          filename: string
+          id: string
+          language: string | null
+          status: string
+          title: string
+          transcript: string | null
+          transcript_json: Json | null
+          updated_at: string
+        }
+        Insert: {
+          audio_path: string
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          error?: string | null
+          filename: string
+          id?: string
+          language?: string | null
+          status?: string
+          title: string
+          transcript?: string | null
+          transcript_json?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          audio_path?: string
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          error?: string | null
+          filename?: string
+          id?: string
+          language?: string | null
+          status?: string
+          title?: string
+          transcript?: string | null
+          transcript_json?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      study_materials: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          kind: string
+          lecture_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          kind: string
+          lecture_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          kind?: string
+          lecture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_materials_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      translations: {
+        Row: {
+          created_at: string
+          id: string
+          lecture_id: string
+          target_language: string
+          translated_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lecture_id: string
+          target_language: string
+          translated_text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lecture_id?: string
+          target_language?: string
+          translated_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translations_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
