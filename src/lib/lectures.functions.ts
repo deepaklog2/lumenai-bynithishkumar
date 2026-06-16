@@ -260,7 +260,7 @@ export const generateStudyMaterial = createServerFn({ method: "POST" })
     const { data: row, error: upErr } = await sb
       .from("study_materials")
       .upsert(
-        { lecture_id: data.lecture_id, kind: data.kind, content: content as object },
+        { lecture_id: data.lecture_id, kind: data.kind, content: content as never },
         { onConflict: "lecture_id,kind" },
       )
       .select()
