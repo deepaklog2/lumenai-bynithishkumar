@@ -28,7 +28,6 @@ function Landing() {
         <nav className="hidden gap-7 text-sm text-muted-foreground md:flex">
           <a href="#features" className="hover:text-foreground">Features</a>
           <a href="#how" className="hover:text-foreground">How it works</a>
-          <a href="#stack" className="hover:text-foreground">AI stack</a>
         </nav>
         <Link
           to="/app"
@@ -157,7 +156,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
-        Built with Deepgram, Gemini & Lovable Cloud · {new Date().getFullYear()}
+        {new Date().getFullYear()}
       </footer>
     </div>
   );
