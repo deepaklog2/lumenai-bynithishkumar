@@ -28,7 +28,6 @@ function Landing() {
         <nav className="hidden gap-7 text-sm text-muted-foreground md:flex">
           <a href="#features" className="hover:text-foreground">Features</a>
           <a href="#how" className="hover:text-foreground">How it works</a>
-          <a href="#stack" className="hover:text-foreground">AI stack</a>
         </nav>
         <Link
           to="/app"
@@ -130,34 +129,9 @@ function Landing() {
         </div>
       </section>
 
-      <section id="stack" className="container mx-auto px-6 py-20 text-center">
-        <h2 className="text-3xl font-bold md:text-4xl">Built on a free-tier AI stack</h2>
-        <p className="mt-3 text-muted-foreground">Optimised to stay fast and inexpensive.</p>
-        <div className="mx-auto mt-8 grid max-w-3xl gap-4 md:grid-cols-3">
-          {[
-            { t: "Deepgram", s: "Nova-3", d: "Speech-to-text" },
-            { t: "Gemini", s: "2.5 Flash", d: "Translate · summarise · chat" },
-            { t: "Lovable Cloud", s: "Postgres + Storage", d: "Persisted sessions" },
-          ].map((p) => (
-            <div key={p.t} className="glass rounded-2xl p-6">
-              <div className="text-sm text-muted-foreground">{p.d}</div>
-              <div className="mt-1 text-lg font-semibold">{p.t}</div>
-              <div className="gradient-text text-sm font-medium">{p.s}</div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-10">
-          <Link
-            to="/app"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-elegant hover:opacity-90"
-          >
-            Start transcribing <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
 
       <footer className="border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
-        Built with Deepgram, Gemini & Lovable Cloud · {new Date().getFullYear()}
+        {new Date().getFullYear()}
       </footer>
     </div>
   );
