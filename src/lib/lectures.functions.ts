@@ -1,17 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-
-// Service-role Supabase client (server only, loaded inside handlers)
-async function getAdmin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // ---------- Types ----------
 export type LectureStatus = "pending" | "transcribing" | "ready" | "error";
 
 // ---------- Create lecture record ----------
 export const createLecture = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -21,11 +17,12 @@ export const createLecture = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
-    const sb = await getAdmin();
-    const { data: row, error } = await sb
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: row, error } = await supabase
       .from("lectures")
       .insert({
+        user_id: userId,
         title: data.title,
         filename: data.filename,
         audio_path: data.audio_path,
@@ -39,24 +36,29 @@ export const createLecture = createServerFn({ method: "POST" })
 
 // ---------- Transcribe (Deepgram) ----------
 export const transcribeLecture = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ lecture_id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
-    const sb = await getAdmin();
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
     const dgKey = process.env.DEEPGRAM_API_KEY;
     if (!dgKey) throw new Error("DEEPGRAM_API_KEY missing");
 
-    const { data: lec, error: lecErr } = await sb
+    const { data: lec, error: lecErr } = await supabase
       .from("lectures")
       .select("*")
       .eq("id", data.lecture_id)
       .single();
     if (lecErr || !lec) throw new Error("Lecture not found");
 
-    await sb.from("lectures").update({ status: "transcribing", error: null }).eq("id", data.lecture_id);
+    await supabase
+      .from("lectures")
+      .update({ status: "transcribing", error: null })
+      .eq("id", data.lecture_id);
 
     try {
-      // Download audio from storage
-      const { data: file, error: dlErr } = await sb.storage.from("audio").download(lec.audio_path);
+      const { data: file, error: dlErr } = await supabase.storage
+        .from("audio")
+        .download(lec.audio_path);
       if (dlErr || !file) throw new Error("Failed to read audio file");
       const buf = await file.arrayBuffer();
 
@@ -81,7 +83,6 @@ export const transcribeLecture = createServerFn({ method: "POST" })
 
       if (!dgRes.ok) {
         const t = await dgRes.text();
-        // Fallback to nova-2
         const params2 = new URLSearchParams(params);
         params2.set("model", "nova-2");
         const dg2 = await fetch(`https://api.deepgram.com/v1/listen?${params2}`, {
@@ -93,23 +94,23 @@ export const transcribeLecture = createServerFn({ method: "POST" })
           throw new Error(`Deepgram failed: ${dgRes.status} ${t.slice(0, 200)}`);
         }
         const json2 = await dg2.json();
-        return await persistTranscript(sb, lec.id, json2);
+        return await persistTranscript(supabase, lec.id, json2);
       }
 
       const json = await dgRes.json();
-      return await persistTranscript(sb, lec.id, json);
+      return await persistTranscript(supabase, lec.id, json);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
-      await sb.from("lectures").update({ status: "error", error: msg }).eq("id", data.lecture_id);
+      await supabase
+        .from("lectures")
+        .update({ status: "error", error: msg })
+        .eq("id", data.lecture_id);
       throw err;
     }
   });
 
-async function persistTranscript(
-  sb: Awaited<ReturnType<typeof getAdmin>>,
-  lectureId: string,
-  dg: unknown,
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function persistTranscript(sb: any, lectureId: string, dg: unknown) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const r = dg as any;
   const channel = r?.results?.channels?.[0];
@@ -135,13 +136,15 @@ async function persistTranscript(
 
 // ---------- Translate (Gemini) ----------
 export const translateTranscript = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ lecture_id: z.string().uuid(), target_language: z.string().min(2).max(40) }).parse(d),
+    z
+      .object({ lecture_id: z.string().uuid(), target_language: z.string().min(2).max(40) })
+      .parse(d),
   )
-  .handler(async ({ data }) => {
-    const sb = await getAdmin();
-    // cache
-    const { data: cached } = await sb
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: cached } = await supabase
       .from("translations")
       .select("*")
       .eq("lecture_id", data.lecture_id)
@@ -149,7 +152,7 @@ export const translateTranscript = createServerFn({ method: "POST" })
       .maybeSingle();
     if (cached) return cached;
 
-    const { data: lec, error } = await sb
+    const { data: lec, error } = await supabase
       .from("lectures")
       .select("transcript")
       .eq("id", data.lecture_id)
@@ -162,7 +165,7 @@ export const translateTranscript = createServerFn({ method: "POST" })
       user: lec.transcript,
     });
 
-    const { data: row, error: insErr } = await sb
+    const { data: row, error: insErr } = await supabase
       .from("translations")
       .insert({
         lecture_id: data.lecture_id,
@@ -175,11 +178,19 @@ export const translateTranscript = createServerFn({ method: "POST" })
     return row;
   });
 
-// ---------- Study materials (summary, notes, keypoints, quiz, flashcards) ----------
-const STUDY_KINDS = ["short_summary", "detailed_summary", "key_points", "notes", "quiz", "flashcards"] as const;
+// ---------- Study materials ----------
+const STUDY_KINDS = [
+  "short_summary",
+  "detailed_summary",
+  "key_points",
+  "notes",
+  "quiz",
+  "flashcards",
+] as const;
 type StudyKind = (typeof STUDY_KINDS)[number];
 
 export const generateStudyMaterial = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
@@ -189,10 +200,10 @@ export const generateStudyMaterial = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
-    const sb = await getAdmin();
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
     if (!data.regenerate) {
-      const { data: cached } = await sb
+      const { data: cached } = await supabase
         .from("study_materials")
         .select("*")
         .eq("lecture_id", data.lecture_id)
@@ -201,7 +212,7 @@ export const generateStudyMaterial = createServerFn({ method: "POST" })
       if (cached) return cached;
     }
 
-    const { data: lec, error } = await sb
+    const { data: lec, error } = await supabase
       .from("lectures")
       .select("title, transcript")
       .eq("id", data.lecture_id)
@@ -214,7 +225,8 @@ export const generateStudyMaterial = createServerFn({ method: "POST" })
 
     if (kind === "short_summary") {
       const text = await geminiChat({
-        system: "Write a concise 3-4 sentence executive summary of the lecture transcript. No preface.",
+        system:
+          "Write a concise 3-4 sentence executive summary of the lecture transcript. No preface.",
         user: lec.transcript,
       });
       content = { text: text.trim() };
@@ -241,7 +253,12 @@ export const generateStudyMaterial = createServerFn({ method: "POST" })
       content = { markdown: text.trim() };
     } else if (kind === "quiz") {
       const json = await geminiJson<{
-        questions: Array<{ question: string; options: string[]; answer_index: number; explanation: string }>;
+        questions: Array<{
+          question: string;
+          options: string[];
+          answer_index: number;
+          explanation: string;
+        }>;
       }>({
         system:
           'Create a 10-question multiple-choice quiz from the transcript. Each question has 4 options. Return JSON: {"questions": [{"question": "...", "options": ["a","b","c","d"], "answer_index": 0, "explanation": "..."}]}',
@@ -257,7 +274,7 @@ export const generateStudyMaterial = createServerFn({ method: "POST" })
       content = json;
     }
 
-    const { data: row, error: upErr } = await sb
+    const { data: row, error: upErr } = await supabase
       .from("study_materials")
       .upsert(
         { lecture_id: data.lecture_id, kind: data.kind, content: content as never },
@@ -271,19 +288,20 @@ export const generateStudyMaterial = createServerFn({ method: "POST" })
 
 // ---------- Chat ----------
 export const chatWithTranscript = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({ lecture_id: z.string().uuid(), message: z.string().min(1).max(2000) }).parse(d),
   )
-  .handler(async ({ data }) => {
-    const sb = await getAdmin();
-    const { data: lec, error } = await sb
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: lec, error } = await supabase
       .from("lectures")
       .select("transcript, title")
       .eq("id", data.lecture_id)
       .single();
     if (error || !lec?.transcript) throw new Error("Transcript not ready");
 
-    const { data: history } = await sb
+    const { data: history } = await supabase
       .from("chat_messages")
       .select("role, content")
       .eq("lecture_id", data.lecture_id)
@@ -310,7 +328,7 @@ ${historyText}`,
       user: data.message,
     });
 
-    await sb.from("chat_messages").insert([
+    await supabase.from("chat_messages").insert([
       { lecture_id: data.lecture_id, role: "user", content: data.message },
       { lecture_id: data.lecture_id, role: "assistant", content: answer },
     ]);

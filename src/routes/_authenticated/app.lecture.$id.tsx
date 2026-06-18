@@ -27,7 +27,7 @@ import {
   translateTranscript,
 } from "@/lib/lectures.functions";
 
-export const Route = createFileRoute("/app/lecture/$id")({
+export const Route = createFileRoute("/_authenticated/app/lecture/$id")({
   head: () => ({ meta: [{ title: "Lecture — Lumen" }] }),
   component: LecturePage,
 });
