@@ -61,6 +61,7 @@ export type Database = {
           transcript: string | null
           transcript_json: Json | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           audio_path: string
@@ -76,6 +77,7 @@ export type Database = {
           transcript?: string | null
           transcript_json?: Json | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           audio_path?: string
@@ -90,6 +92,31 @@ export type Database = {
           title?: string
           transcript?: string | null
           transcript_json?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
           updated_at?: string
         }
         Relationships: []
@@ -163,7 +190,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      owns_lecture: { Args: { _lecture_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
