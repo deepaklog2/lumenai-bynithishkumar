@@ -35,7 +35,9 @@ function UploadPage() {
       try {
         setBusy("Uploading audio…");
         setProgress(15);
-        const path = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData.user) throw new Error("Not signed in");
+        const path = `${userData.user.id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
         const { error: upErr } = await supabase.storage.from("audio").upload(path, file, {
           contentType: file.type || "audio/mpeg",
           upsert: false,
