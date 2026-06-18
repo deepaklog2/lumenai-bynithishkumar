@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Clock, FileAudio2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/history")({
+export const Route = createFileRoute("/_authenticated/app/history")({
   head: () => ({ meta: [{ title: "Library — Lumen" }] }),
   component: HistoryPage,
 });

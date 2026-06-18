@@ -6,7 +6,7 @@ import { UploadCloud, Loader2, AudioLines } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { createLecture, transcribeLecture } from "@/lib/lectures.functions";
 
-export const Route = createFileRoute("/app/")({
+export const Route = createFileRoute("/_authenticated/app/")({
   component: UploadPage,
 });
 

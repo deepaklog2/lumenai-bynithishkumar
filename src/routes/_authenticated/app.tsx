@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { AudioLines, Upload, History, Home } from "lucide-react";
 
-export const Route = createFileRoute("/app")({
+export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
     meta: [{ title: "Lumen — Workspace" }],
   }),
