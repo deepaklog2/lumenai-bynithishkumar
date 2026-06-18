@@ -9,81 +9,81 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as AppHistoryRouteImport } from './routes/app.history'
-import { Route as AppLectureIdRouteImport } from './routes/app.lecture.$id'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppHistoryRouteImport } from './routes/_authenticated/app.history'
+import { Route as AuthenticatedAppLectureIdRouteImport } from './routes/_authenticated/app.lecture.$id'
 
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/_authenticated/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AppHistoryRoute = AppHistoryRouteImport.update({
+const AuthenticatedAppHistoryRoute = AuthenticatedAppHistoryRouteImport.update({
   id: '/history',
   path: '/history',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AppLectureIdRoute = AppLectureIdRouteImport.update({
-  id: '/lecture/$id',
-  path: '/lecture/$id',
-  getParentRoute: () => AppRoute,
-} as any)
+const AuthenticatedAppLectureIdRoute =
+  AuthenticatedAppLectureIdRouteImport.update({
+    id: '/lecture/$id',
+    path: '/lecture/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/history': typeof AppHistoryRoute
-  '/app/': typeof AppIndexRoute
-  '/app/lecture/$id': typeof AppLectureIdRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/history': typeof AuthenticatedAppHistoryRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/lecture/$id': typeof AuthenticatedAppLectureIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app/history': typeof AppHistoryRoute
-  '/app': typeof AppIndexRoute
-  '/app/lecture/$id': typeof AppLectureIdRoute
+  '/app/history': typeof AuthenticatedAppHistoryRoute
+  '/app': typeof AuthenticatedAppIndexRoute
+  '/app/lecture/$id': typeof AuthenticatedAppLectureIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/history': typeof AppHistoryRoute
-  '/app/': typeof AppIndexRoute
-  '/app/lecture/$id': typeof AppLectureIdRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/history': typeof AuthenticatedAppHistoryRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/lecture/$id': typeof AuthenticatedAppLectureIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths: '/' | '/app' | '/app/history' | '/app/' | '/app/lecture/$id'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/app/history' | '/app' | '/app/lecture/$id'
-  id: '__root__' | '/' | '/app' | '/app/history' | '/app/' | '/app/lecture/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated/app'
+    | '/_authenticated/app/history'
+    | '/_authenticated/app/'
+    | '/_authenticated/app/lecture/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -91,47 +91,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
       path: '/'
       fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/history': {
-      id: '/app/history'
+    '/_authenticated/app/history': {
+      id: '/_authenticated/app/history'
       path: '/history'
       fullPath: '/app/history'
-      preLoaderRoute: typeof AppHistoryRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppHistoryRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/lecture/$id': {
-      id: '/app/lecture/$id'
+    '/_authenticated/app/lecture/$id': {
+      id: '/_authenticated/app/lecture/$id'
       path: '/lecture/$id'
       fullPath: '/app/lecture/$id'
-      preLoaderRoute: typeof AppLectureIdRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppLectureIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
 
-interface AppRouteChildren {
-  AppHistoryRoute: typeof AppHistoryRoute
-  AppIndexRoute: typeof AppIndexRoute
-  AppLectureIdRoute: typeof AppLectureIdRoute
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppHistoryRoute: typeof AuthenticatedAppHistoryRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppLectureIdRoute: typeof AuthenticatedAppLectureIdRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppHistoryRoute: AppHistoryRoute,
-  AppIndexRoute: AppIndexRoute,
-  AppLectureIdRoute: AppLectureIdRoute,
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppHistoryRoute: AuthenticatedAppHistoryRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppLectureIdRoute: AuthenticatedAppLectureIdRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
