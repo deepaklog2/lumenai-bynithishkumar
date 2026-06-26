@@ -10,7 +10,7 @@ export default defineConfig({
   vite: {
     server: {
       allowedHosts: [
-        "lumenai-bynithishkumar.onrender.com"
+        "lumenai-bynithishkumarproject.onrender.com"
       ],
     },
   },
